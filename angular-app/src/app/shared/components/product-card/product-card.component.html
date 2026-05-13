@@ -1,0 +1,17 @@
+<div class="product-card" [class.out-of-stock]="product.stock <= 0">
+    <div class="product-badge" *ngIf="product.stock <= 0">Esgotado</div>
+    <img [src]="product.image" [alt]="product.title">
+    <div class="product-info">
+        <span class="category">{{ product.categoryLabel }}</span>
+        <h3>{{ product.title }}</h3>
+        <p class="price">{{ product.price | currency:'BRL':'symbol':'1.2-2' }}</p>
+        <p class="pix-price">{{ product.price * 0.9 | currency:'BRL':'symbol':'1.2-2' }} no PIX</p>
+        <button 
+            type="button" 
+            class="add-to-cart-btn" 
+            [disabled]="product.stock <= 0"
+            (click)="$event.stopPropagation(); onAdd()">
+            {{ product.stock > 0 ? 'Comprar' : 'Indisponível' }}
+        </button>
+    </div>
+</div>

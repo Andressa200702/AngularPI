@@ -1,0 +1,49 @@
+<section class="section-container">
+    <div class="success-card" *ngIf="order(); else noOrder">
+        <div class="success-icon">OK</div>
+        <h1 class="section-title">Pedido Realizado com Sucesso!</h1>
+        <p class="subtitle">Obrigado pela sua compra. Enviamos um e-mail com os detalhes do pedido para <strong>{{ order()?.customer?.email }}</strong>.</p>
+
+        <div class="order-info-grid">
+            <div class="info-block">
+                <strong>Número do Pedido:</strong>
+                <span>#{{ order()?.id }}</span>
+            </div>
+            <div class="info-block">
+                <strong>Data:</strong>
+                <span>{{ order()?.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="info-block">
+                <strong>Método de Pagamento:</strong>
+                <span>{{ order()?.paymentMethod === 'pix' ? 'PIX' : 'Cartão de Crédito' }}</span>
+            </div>
+            <div class="info-block">
+                <strong>Total Pago:</strong>
+                <span class="total-price">{{ order()?.total | currency:'BRL' }}</span>
+            </div>
+        </div>
+
+        <div class="next-steps">
+            <h3>O que acontece agora?</h3>
+            <ul>
+                <li *ngIf="order()?.paymentMethod === 'pix'">
+                    <strong>Pagamento via PIX:</strong> Utilize o código enviado ao seu e-mail para concluir o pagamento. O pedido será processado assim que o sistema confirmar o recebimento.
+                </li>
+                <li><strong>Processamento:</strong> Nossa equipe irá separar e embalar seus produtos com todo o cuidado.</li>
+                <li><strong>Envio:</strong> Assim que postado, você receberá um código de rastreio por e-mail.</li>
+            </ul>
+        </div>
+
+        <div class="actions">
+            <a routerLink="/" class="btn">Continuar Comprando</a>
+            <a routerLink="/perfil" class="btn btn-secondary">Acompanhar Pedido</a>
+        </div>
+    </div>
+
+    <ng-template #noOrder>
+        <div class="empty-state">
+            <p>Nenhum pedido recente encontrado em sua sessão.</p>
+            <a routerLink="/" class="btn">Voltar à Loja</a>
+        </div>
+    </ng-template>
+</section>

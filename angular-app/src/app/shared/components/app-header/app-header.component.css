@@ -1,0 +1,119 @@
+.topbar {
+    background-color: var(--dark);
+    color: white;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.topbar marquee {
+    width: 100%;
+    line-height: 32px;
+}
+
+
+header {
+    background-color: white;
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    text-decoration: none;
+}
+
+.search-bar {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 2rem;
+    display: flex;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border);
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+}
+
+.search-bar button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1.5rem;
+    font-weight: 500;
+}
+
+.header-actions a {
+    text-decoration: none;
+    color: var(--dark);
+}
+
+.header-actions a:hover {
+    color: var(--primary);
+}
+
+.logout-link {
+    background: none;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.logout-link:hover {
+    background: var(--primary);
+    color: white;
+}
+
+nav {
+    background-color: var(--dark-alt);
+    padding: 1rem 5%;
+}
+
+nav ul {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav a {
+    color: white;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: var(--primary);
+}

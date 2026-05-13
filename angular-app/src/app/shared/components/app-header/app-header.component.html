@@ -1,0 +1,37 @@
+<div class="topbar">
+    <marquee behavior="scroll" direction="left">
+        ENVIO GRÁTIS PARA TODO SUL E SUDESTE EM COMPRAS ACIMA DE R$ 200
+    </marquee>
+</div>
+
+<header>
+    <a routerLink="/" class="logo">Rolagem Crítica</a>
+    
+    <div class="search-bar">
+        <input 
+            type="text" 
+            placeholder="O que você está procurando?"
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="onSearch()">
+        <button type="button" (click)="onSearch()">Buscar</button>
+    </div>
+
+    <div class="header-actions">
+        <a [routerLink]="isLoggedIn() ? '/perfil' : '/login'">
+            {{ isLoggedIn() ? 'Meu Perfil' : 'Minha Conta' }}
+        </a>
+        <a routerLink="/carrinho">Carrinho ({{ cartCount() }})</a>
+        <button *ngIf="isLoggedIn()" (click)="logout()" class="logout-link">Sair</button>
+    </div>
+</header>
+
+<nav>
+    <ul>
+        <li><a routerLink="/categoria/rpg-de-mesa">RPG de Mesa</a></li>
+        <li><a routerLink="/categoria/board-games">Board Games</a></li>
+        <li><a routerLink="/categoria/literatura">Literatura</a></li>
+        <li><a routerLink="/categoria/acessorios">Acessórios</a></li>
+        <li><a routerLink="/categoria/originais">Originais</a></li>
+        <li><a routerLink="/categoria/pre-vendas">Pré-vendas</a></li>
+    </ul>
+</nav>

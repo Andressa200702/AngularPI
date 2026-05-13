@@ -1,0 +1,78 @@
+﻿<section class="section-container">
+    <h1 class="section-title">Meu Carrinho</h1>
+
+    <div class="cart-layout" *ngIf="items().length > 0; else emptyCart">
+        <div class="cart-items">
+            <div class="cart-item" *ngFor="let item of items()">
+                <img [src]="item.image" [alt]="item.title">
+                <div class="item-info">
+                    <h3>{{ item.title }}</h3>
+                    <p class="unit-price">{{ item.price | currency:'BRL' }}</p>
+                    <div class="quantity-controls">
+                        <button (click)="decrease(item.productId)">-</button>
+                        <span>{{ item.quantity }}</span>
+                        <button (click)="increase(item.productId)" [disabled]="item.quantity >= 10">+</button>
+                    </div>
+                </div>
+                <div class="item-total">
+                    <span class="total-price">{{ item.price * item.quantity | currency:'BRL' }}</span>
+                    <button class="remove-btn" (click)="remove(item.productId)">[ Remover ]</button>
+                </div>
+            </div>
+        </div>
+
+        <aside class="cart-summary">
+            <h3>Total do Pedido</h3>
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>{{ subtotal() | currency:'BRL' }}</span>
+            </div>
+            
+            <div class="summary-row" *ngIf="frete() !== null">
+                <span>Frete</span>
+                <span [style.color]="frete() === 0 ? '#059669' : 'inherit'">
+                    {{ frete() === 0 ? 'GRÁTIS' : (frete() | currency:'BRL') }}
+                </span>
+            </div>
+
+            <div class="frete-calculator">
+                <h4>Simular Frete</h4>
+                <div class="frete-input-group">
+                    <input type="text" [(ngModel)]="cep" placeholder="00000-000" maxlength="9">
+                    <button (click)="calcularFrete()" [disabled]="loadingFrete()">
+                        {{ loadingFrete() ? '...' : 'Calcular' }}
+                    </button>
+                </div>
+                <p class="error-msg" *ngIf="freteError()">{{ freteError() }}</p>
+                <div class="frete-result" *ngIf="frete() !== null && frete() === 0">
+                    <span style="color: #059669; font-size: 0.75rem; font-weight: 700;">
+                        Frete Grátis Aplicado!
+                    </span>
+                </div>
+            </div>
+
+            <div class="pix-highlight">
+                <span>Total no PIX (10% OFF)</span>
+                <strong>{{ totalComFrete() * 0.9 | currency:'BRL' }}</strong>
+            </div>
+
+            <div class="summary-row" style="border-top: 1px solid #eee; padding-top: 1rem; font-weight: 900; font-size: 1.2rem;">
+                <span>Total</span>
+                <span>{{ totalComFrete() | currency:'BRL' }}</span>
+            </div>
+
+            <button class="btn btn-checkout" (click)="goCheckout()" [disabled]="items().length === 0">
+                Finalizar Compra
+            </button>
+            <a routerLink="/" class="continue-shopping">Continuar Comprando</a>
+        </aside>
+    </div>
+
+    <ng-template #emptyCart>
+        <div class="empty-state">
+            <p>Seu carrinho está vazio.</p>
+            <br>
+            <a routerLink="/" class="btn">Explorar Produtos</a>
+        </div>
+    </ng-template>
+</section>

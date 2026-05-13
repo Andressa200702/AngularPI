@@ -1,0 +1,58 @@
+<div class="hero" *ngIf="!categoryFilter() && !searchFilter()">
+    <h1>Bem-vindo à Rolagem Crítica</h1>
+    <p>Onde sua jornada RPG e seus board games favoritos começam. Explore nosso catálogo épico!</p>
+    <a routerLink="/categoria/rpg-de-mesa" class="btn btn-primary" style="margin-top: 2rem;">Explorar Agora</a>
+</div>
+
+<div class="catalogo-container">
+    <div class="search-section">
+        <div class="search-bar">
+            <input 
+                type="text" 
+                placeholder="Buscar produtos..." 
+                #searchInput
+                (keyup.enter)="searchProducts(searchInput.value)"
+                class="search-input">
+            <button (click)="searchProducts(searchInput.value)" class="btn-search">Buscar</button>
+        </div>
+        
+        <div class="filters">
+            <h4>Categorias:</h4>
+            <div class="category-buttons">
+                <!-- Botão "Tudo" -->
+                <button 
+                    [class.active]="!categoryFilter()"
+                    (click)="filterByCategory('')"
+                    class="filter-btn">Tudo</button>
+                
+                <!-- Botões de categorias dinâmicas do admin -->
+                <button 
+                    *ngFor="let cat of categories()"
+                    [class.active]="categoryFilter() === cat.name"
+                    (click)="filterByCategory(cat.name)"
+                    class="filter-btn">{{ cat.label }}</button>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">{{ categoriaLabel() }}</h2>
+
+    @if (loading()) {
+        <p style="text-align: center; padding: 3rem;">Carregando produtos...</p>
+    }
+
+    @if (error()) {
+        <p class="error" style="text-align: center; color: var(--primary);">{{ error() }}</p>
+    }
+
+    <div class="grid">
+        @for (product of filteredProducts(); track product.id) {
+            <app-product-card [product]="product" (click)="openProduct(product.id)" />
+        }
+    </div>
+
+    @if (!loading() && filteredProducts().length === 0) {
+        <p style="text-align: center; margin-top: 4rem; font-size: 1.2rem;">Nenhum produto encontrado.</p>
+    }
+</div>
+

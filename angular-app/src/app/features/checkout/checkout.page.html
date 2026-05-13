@@ -1,0 +1,167 @@
+<section class="section-container">
+    <h1 class="section-title">Finalizar Pedido</h1>
+
+    <!-- AVISO PARA ADMIN -->
+    @if (isAdmin()) {
+        <div class="admin-warning" style="background: #fff3cd; border: 2px solid #ff6b6b; color: #333; padding: 1.5rem; margin-bottom: 2rem; border-radius: 8px; text-align: center;">
+            <strong style="color: #ff6b6b; font-size: 1.1rem;">⚠️ Acesso Bloqueado</strong>
+            <p style="margin: 0.5rem 0 0 0;">Administradores não podem fazer pedidos no sistema.</p>
+            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Para testar fluxo de compra, crie uma conta de cliente.</p>
+        </div>
+    }
+
+    <div class="checkout-layout" *ngIf="items().length > 0; else noItems">
+        <form [formGroup]="form" (ngSubmit)="submit()" class="checkout-form">
+            <div class="form-section">
+                <h3>1. Dados de Contato</h3>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Nome Completo</label>
+                        <input type="text" formControlName="nome" placeholder="Seu nome completo">
+                    </div>
+                    <div class="form-group full">
+                        <label>E-mail</label>
+                        <input type="email" formControlName="email" placeholder="seu@email.com">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>2. Endereço de Entrega</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>CEP</label>
+                        <input type="text" formControlName="cep" (input)="onCepChange()" placeholder="00000000" maxlength="8">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <span *ngIf="loadingFrete()" class="loading-msg">Buscando...</span>
+                    </div>
+                    <div class="form-group full">
+                        <label>Logradouro/Rua</label>
+                        <input type="text" formControlName="endereco" placeholder="Ex: Rua das Flores">
+                    </div>
+                    <div class="form-group">
+                        <label>Número</label>
+                        <input type="text" formControlName="numero" placeholder="123">
+                    </div>
+                    <div class="form-group">
+                        <label>Complemento</label>
+                        <input type="text" formControlName="complemento" placeholder="Apto 1">
+                    </div>
+                    <div class="form-group">
+                        <label>Bairro</label>
+                        <input type="text" formControlName="bairro">
+                    </div>
+                    <div class="form-group">
+                        <label>Cidade</label>
+                        <input type="text" formControlName="cidade">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado (UF)</label>
+                        <input type="text" formControlName="estado" maxlength="2">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>3. Forma de Pagamento</h3>
+                <div class="payment-options">
+                    <label class="payment-card" [class.active]="form.get('pagamento')?.value === 'pix'">
+                        <input type="radio" formControlName="pagamento" value="pix">
+                        <div class="payment-info">
+                            <strong>PIX (10% de DESCONTO)</strong>
+                            <span>Aprovação imediata</span>
+                        </div>
+                    </label>
+                    <label class="payment-card" [class.active]="form.get('pagamento')?.value === 'cartao'">
+                        <input type="radio" formControlName="pagamento" value="cartao">
+                        <div class="payment-info">
+                            <strong>Cartão de Crédito</strong>
+                            <span>Em até 10x sem juros</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            @if (checkoutStore.error()) {
+                <p class="error-banner">{{ checkoutStore.error() }}</p>
+            }
+
+            <button type="submit" class="btn btn-checkout" [disabled]="checkoutStore.loading() || form.invalid || isAdmin()">
+                @if (isAdmin()) {
+                    Acesso Bloqueado para Admin
+                } @else if (checkoutStore.loading()) {
+                    Processando...
+                } @else {
+                    Finalizar Pedido
+                }
+            </button>
+        </form>
+
+        <aside class="order-summary">
+            <h3>Seu Pedido</h3>
+            <div class="summary-items">
+                <div class="summary-item" *ngFor="let item of items()">
+                    <span>{{ item.quantity }}x {{ item.title }}</span>
+                    <span>{{ item.price * item.quantity | currency:'BRL' }}</span>
+                </div>
+            </div>
+
+            <div class="coupon-section">
+                <h4>Código de Cupom</h4>
+                <div *ngIf="!appliedCoupon()" class="coupon-input-group">
+                    <input 
+                        type="text" 
+                        [(ngModel)]="couponCode"
+                        placeholder="Ex: PROMO10"
+                        class="coupon-input"
+                        (keyup.enter)="applyCoupon()">
+                    <button (click)="applyCoupon()" class="btn-apply-coupon">Aplicar</button>
+                </div>
+
+                <div *ngIf="appliedCoupon()" class="coupon-applied">
+                    <div class="coupon-badge">
+                        🎟️ {{ appliedCoupon().code }} 
+                        <button class="btn-remove-coupon" (click)="removeCoupon()">✕</button>
+                    </div>
+                    <p class="coupon-details">
+                        Desconto: 
+                        <strong *ngIf="appliedCoupon().type === 'percentage'">{{ appliedCoupon().value }}%</strong>
+                        <strong *ngIf="appliedCoupon().type === 'fixed'">{{ appliedCoupon().value | currency:'BRL' }}</strong>
+                    </p>
+                </div>
+
+                <p *ngIf="couponError()" class="coupon-error">{{ couponError() }}</p>
+                <p *ngIf="couponSuccess()" class="coupon-success">{{ couponSuccess() }}</p>
+            </div>
+
+            <div class="totals-area">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span>{{ subtotal() | currency:'BRL' }}</span>
+                </div>
+                <div class="total-row">
+                    <span>Frete:</span>
+                    <span>{{ frete() === 0 ? 'Grátis' : (frete() | currency:'BRL') }}</span>
+                </div>
+                <div class="total-row discount" *ngIf="discount() > 0">
+                    <span>Desconto:</span>
+                    <span>-{{ discount() | currency:'BRL' }}</span>
+                </div>
+                <div class="total-row final-total">
+                    <span>TOTAL:</span>
+                    <span>{{ total() | currency:'BRL' }}</span>
+                </div>
+            </div>
+            
+            <p class="privacy-note">Seus dados pessoais serão usados para processar seu pedido, apoiar sua experiência em todo este site e para outros fins descritos em nossa <a routerLink="/privacidade">política de privacidade</a>.</p>
+        </aside>
+    </div>
+
+    <ng-template #noItems>
+        <div class="empty-state">
+            <p>Não há itens no carrinho para finalizar.</p>
+            <a routerLink="/" class="btn">Voltar à Loja</a>
+        </div>
+    </ng-template>
+</section>
