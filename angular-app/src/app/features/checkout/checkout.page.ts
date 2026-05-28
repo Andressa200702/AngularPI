@@ -36,11 +36,9 @@ export class CheckoutPage {
   readonly selectedPayment = signal<'cartao' | 'pix'>('cartao');
 
   readonly discount = computed(() => {
-    // PIX sempre recebe 10% de desconto
     let pixDiscount = this.selectedPayment() === 'pix' ? this.subtotal() * 0.1 : 0;
     let couponDiscount = 0;
 
-    // Cupom é aplicado independente da forma de pagamento
     if (this.appliedCoupon()) {
       const coupon = this.appliedCoupon();
       if (coupon.type === 'percentage') {
@@ -50,7 +48,6 @@ export class CheckoutPage {
       }
     }
 
-    // Acumula PIX (se aplicável) + cupom, limitado ao subtotal
     return Math.min(pixDiscount + couponDiscount, this.subtotal());
   });
 
@@ -58,7 +55,6 @@ export class CheckoutPage {
     return this.subtotal() + this.frete() - this.discount();
   });
 
-  // Bloqueia checkout para admin
   readonly isAdmin = computed(() => {
     const user = this.authService.currentUser();
     return user?.isAdmin === true;
@@ -67,7 +63,8 @@ export class CheckoutPage {
   readonly form = this.fb.nonNullable.group({
     nome: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    cep: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
+    // Validator espera 00000-000 (com traço) pois é o que fica no FormControl
+    cep: ['', [Validators.required, Validators.pattern(/^\d{5}-\d{3}$/)]],
     endereco: ['', [Validators.required]],
     numero: ['', [Validators.required]],
     complemento: [''],
@@ -86,7 +83,30 @@ export class CheckoutPage {
       });
     }
 
-    // Sincroniza mudança de forma de pagamento
+    // ─── Máscara de CEP via valueChanges ─────────────────────────────────────
+    // Escuta cada mudança no campo cep, aplica a máscara e devolve o valor
+    // formatado pro próprio FormControl (sem disparar novo evento = sem loop)
+    this.form.get('cep')!.valueChanges.subscribe((value: string) => {
+      const digits = value.replace(/\D/g, '').slice(0, 8);
+
+      const formatted = digits.length > 5
+        ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+        : digits;
+
+      // Só atualiza se o valor mudou (evita loop infinito)
+      if (value !== formatted) {
+        this.form.get('cep')!.setValue(formatted, { emitEvent: false });
+      }
+
+      // Dispara frete ao completar 8 dígitos
+      if (digits.length === 8) {
+        void this.onCepChange();
+      } else {
+        this.frete.set(0);
+      }
+    });
+
+    // ─── Sincroniza forma de pagamento ───────────────────────────────────────
     effect(() => {
       const payment = this.form.get('pagamento')?.value;
       if (payment) {
@@ -96,9 +116,8 @@ export class CheckoutPage {
   }
 
   async onCepChange(): Promise<void> {
-    const rawCep = this.form.get('cep')?.value || '';
-    const cep = rawCep.replace(/\D/g, ''); // Garante que so tenha numeros
-    
+    const cep = this.form.get('cep')?.value?.replace(/\D/g, '') || '';
+
     if (cep.length === 8) {
       this.loadingFrete.set(true);
       try {
@@ -120,8 +139,9 @@ export class CheckoutPage {
     }
   }
 
+  // ─── Submit ──────────────────────────────────────────────────────────────────
+
   async submit(): Promise<void> {
-    // Bloqueia checkout para admin
     if (this.isAdmin()) {
       this.checkoutStore.error.set('Administradores não podem fazer pedidos no sistema.');
       return;
@@ -145,7 +165,6 @@ export class CheckoutPage {
 
     if (!order) return;
 
-    // Increment coupon usage if applied
     if (this.appliedCoupon()) {
       this.couponService.incrementUsage(this.appliedCoupon().id);
     }
@@ -153,6 +172,8 @@ export class CheckoutPage {
     this.cartStore.clear();
     void this.router.navigate(['/pedido-finalizado']);
   }
+
+  // ─── Cupom ───────────────────────────────────────────────────────────────────
 
   applyCoupon(): void {
     this.couponError.set('');

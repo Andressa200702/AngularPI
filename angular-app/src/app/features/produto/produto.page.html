@@ -48,5 +48,77 @@
         <h2>Descrição do Produto</h2>
         <div [innerHTML]="item.description"></div>
     </div>
+
+    <!-- ─── AVALIAÇÕES ─── -->
+    <div class="reviews-section">
+      <h2>Avaliações dos Clientes</h2>
+
+      <!-- Resumo -->
+      <div class="reviews-summary">
+        <div class="rating-big">
+          <span class="rating-number">{{ averageRating() }}</span>
+          <div class="stars-display">
+            <span *ngFor="let s of [1,2,3,4,5]" class="star" [class.filled]="s <= roundedRating()">★</span>
+          </div>
+          <span class="rating-count">{{ reviews().length }} avaliações</span>
+        </div>
+      </div>
+
+      <!-- Lista de avaliações -->
+      <div class="reviews-list">
+        <div class="review-card" *ngFor="let review of reviews()">
+          <div class="review-header">
+            <div class="review-author-info">
+              <span class="review-author">{{ review.author }}</span>
+              <span class="review-date">{{ review.date }}</span>
+            </div>
+            <div class="review-stars">
+              <span *ngFor="let s of [1,2,3,4,5]" class="star" [class.filled]="s <= review.rating">★</span>
+            </div>
+          </div>
+          <p class="review-comment">{{ review.comment }}</p>
+        </div>
+      </div>
+
+      <!-- Formulário nova avaliação -->
+      <div class="review-form">
+        <h3>Deixe sua Avaliação</h3>
+
+        <div class="star-picker">
+          <span
+            *ngFor="let s of [1,2,3,4,5]"
+            class="star-pick"
+            [class.filled]="s <= (hoverStar() || newRating())"
+            (mouseenter)="hoverStar.set(s)"
+            (mouseleave)="hoverStar.set(0)"
+            (click)="newRating.set(s)"
+          >★</span>
+          <span class="star-label" *ngIf="newRating() > 0">{{ ratingLabel() }}</span>
+        </div>
+
+        <input
+          type="text"
+          class="review-input"
+          placeholder="Seu nome"
+          [value]="newAuthor()"
+          (input)="newAuthor.set($any($event.target).value)"
+          maxlength="40"
+        >
+
+        <textarea
+          class="review-textarea"
+          placeholder="Conte sua experiência com o produto..."
+          [value]="newComment()"
+          (input)="newComment.set($any($event.target).value)"
+          rows="4"
+          maxlength="400"
+        ></textarea>
+
+        <p class="review-form-error" *ngIf="reviewError()">{{ reviewError() }}</p>
+        <p class="review-form-success" *ngIf="reviewSuccess()">{{ reviewSuccess() }}</p>
+
+        <button class="btn btn-primary" (click)="submitReview()">Enviar Avaliação</button>
+      </div>
+    </div>
   }
 </section>

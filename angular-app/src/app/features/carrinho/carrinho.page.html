@@ -38,7 +38,15 @@
             <div class="frete-calculator">
                 <h4>Simular Frete</h4>
                 <div class="frete-input-group">
-                    <input type="text" [(ngModel)]="cep" placeholder="00000-000" maxlength="9">
+                    <!-- maxlength="9" = 00000-000 -->
+                    <input
+                        type="text"
+                        [ngModel]="cep()"
+                        (input)="onCepInput($event)"
+                        placeholder="00000-000"
+                        maxlength="9"
+                        inputmode="numeric"
+                    >
                     <button (click)="calcularFrete()" [disabled]="loadingFrete()">
                         {{ loadingFrete() ? '...' : 'Calcular' }}
                     </button>

@@ -1,5 +1,5 @@
 <section class="section-container">
-    <h1 class="section-title">Finalizar Pedido</h1>
+    <h1 class="section-title" style="text-align: center;">Finalizar Pedido</h1>
 
     <!-- AVISO PARA ADMIN -->
     @if (isAdmin()) {
@@ -31,7 +31,13 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>CEP</label>
-                        <input type="text" formControlName="cep" (input)="onCepChange()" placeholder="00000000" maxlength="8">
+                        <input
+                            type="text"
+                            formControlName="cep"
+                            placeholder="00000-000"
+                            maxlength="9"
+                            inputmode="numeric"
+                        >
                     </div>
                     <div class="form-group" style="display: flex; align-items: flex-end;">
                         <span *ngIf="loadingFrete()" class="loading-msg">Buscando...</span>

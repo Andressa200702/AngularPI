@@ -25,7 +25,25 @@ export class CarrinhoPage {
   readonly loadingFrete = signal(false);
   readonly freteError = signal<string | null>(null);
 
-  // Removi o autoRecalcular por enquanto para garantir que o clique manual funcione isolado
+  // Máscara de CEP 
+
+  onCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    // Remove tudo que não for dígito (bloqueia letras e caracteres especiais)
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+
+    // Aplica a máscara 00000-000
+    const formatted = digits.length > 5
+      ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+      : digits;
+
+    input.value = formatted;
+    this.cep.set(formatted);
+  }
+
+  // Frete 
+
   async calcularFrete() {
     const val = this.cep().replace(/\D/g, '');
     if (val.length !== 8) {
@@ -36,7 +54,7 @@ export class CarrinhoPage {
     this.loadingFrete.set(true);
     this.freteError.set(null);
 
-    const currentSubtotal = this.cartStore.subtotal(); // Puxando direto da Store para garantir valor real
+    const currentSubtotal = this.cartStore.subtotal();
     
     console.log('Solicitando frete para subtotal:', currentSubtotal);
     const result = await this.freteService.calcular(val, currentSubtotal);
@@ -51,10 +69,14 @@ export class CarrinhoPage {
     }
   }
 
+  // Computed 
+
   readonly totalComFrete = computed(() => {
     const f = this.frete();
     return this.subtotal() + (f !== null ? f : 0);
   });
+
+  // Carrinho 
 
   increase(productId: string): void {
     const item = this.items().find((current) => current.productId === productId);

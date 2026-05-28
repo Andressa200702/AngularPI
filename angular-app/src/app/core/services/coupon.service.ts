@@ -17,6 +17,19 @@ export interface Coupon {
 
 const COUPON_STORAGE_KEY = 'rolagem_coupons';
 
+const DEFAULT_COUPONS: Coupon[] = [
+  {
+    id: 'default_1',
+    code: 'CRITICA10',
+    type: 'percentage',
+    value: 10,
+    usedCount: 0,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    description: '10% de desconto em qualquer pedido'
+  }
+];
+
 @Injectable({ providedIn: 'root' })
 export class CouponService {
   private readonly storage = inject(StorageService);
@@ -29,7 +42,22 @@ export class CouponService {
 
   private loadCoupons(): void {
     const stored = this.storage.get<Coupon[]>(COUPON_STORAGE_KEY, []);
-    this.couponsSignal.set(stored);
+
+    if (stored.length === 0) {
+      // Primeira vez: salva os cupons padrão no storage
+      this.couponsSignal.set(DEFAULT_COUPONS);
+      this.storage.set(COUPON_STORAGE_KEY, DEFAULT_COUPONS);
+    } else {
+      // Garante que os cupons padrão sempre existam (mesmo que o admin delete e recarregue)
+      const hasCritica10 = stored.some(c => c.code === 'CRITICA10');
+      if (!hasCritica10) {
+        const merged = [...DEFAULT_COUPONS, ...stored];
+        this.couponsSignal.set(merged);
+        this.storage.set(COUPON_STORAGE_KEY, merged);
+      } else {
+        this.couponsSignal.set(stored);
+      }
+    }
   }
 
   add(data: Omit<Coupon, 'id' | 'usedCount' | 'createdAt'>): Coupon {

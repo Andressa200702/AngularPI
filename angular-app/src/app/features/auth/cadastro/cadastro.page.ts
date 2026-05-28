@@ -27,11 +27,31 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="form-row">
             <div class="form-group">
               <label for="cpf">CPF</label>
-              <input type="text" id="cpf" name="cpf" [(ngModel)]="user.cpf" required placeholder="000.000.000-00">
+              <input
+                type="text"
+                id="cpf"
+                name="cpf"
+                [(ngModel)]="user.cpf"
+                required
+                placeholder="000.000.000-00"
+                inputmode="numeric"
+                maxlength="14"
+                (input)="onCpfInput($event)"
+              >
             </div>
             <div class="form-group">
               <label for="telefone">Telefone</label>
-              <input type="text" id="telefone" name="telefone" [(ngModel)]="user.telefone" required placeholder="(00) 00000-0000">
+              <input
+                type="text"
+                id="telefone"
+                name="telefone"
+                [(ngModel)]="user.telefone"
+                required
+                placeholder="(00) 00000-0000"
+                inputmode="numeric"
+                maxlength="15"
+                (input)="onTelefoneInput($event)"
+              >
             </div>
           </div>
 
@@ -114,6 +134,45 @@ export class CadastroPage {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
+  // Máscaras
+
+  onCpfInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 11);
+
+    let formatted = digits;
+    if (digits.length > 9)
+      formatted = `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6,9)}-${digits.slice(9)}`;
+    else if (digits.length > 6)
+      formatted = `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6)}`;
+    else if (digits.length > 3)
+      formatted = `${digits.slice(0,3)}.${digits.slice(3)}`;
+
+    input.value = formatted;
+    this.user.cpf = formatted;
+  }
+
+  onTelefoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 11);
+
+    let formatted = digits;
+    if (digits.length > 6) {
+      // Celular (11 dígitos): (XX) XXXXX-XXXX  |  Fixo (10 dígitos): (XX) XXXX-XXXX
+      const corpoSize = digits.length === 11 ? 5 : 4;
+      formatted = `(${digits.slice(0,2)}) ${digits.slice(2, 2 + corpoSize)}-${digits.slice(2 + corpoSize)}`;
+    } else if (digits.length > 2) {
+      formatted = `(${digits.slice(0,2)}) ${digits.slice(2)}`;
+    } else if (digits.length > 0) {
+      formatted = `(${digits}`;
+    }
+
+    input.value = formatted;
+    this.user.telefone = formatted;
+  }
+
+  // Validações 
+
   private validateCPF(cpf: string): boolean {
     const cleanCPF = cpf.replace(/\D/g, '');
     const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$/;
@@ -139,12 +198,8 @@ export class CadastroPage {
     const dataNasc = new Date(data);
     const hoje = new Date();
     
-    // Não pode ser no futuro
-    if (dataNasc > hoje) {
-      return false;
-    }
+    if (dataNasc > hoje) return false;
     
-    // Calcula idade
     let idade = hoje.getFullYear() - dataNasc.getFullYear();
     const mesAtual = hoje.getMonth();
     const diaAtual = hoje.getDate();
@@ -154,15 +209,15 @@ export class CadastroPage {
       idade--;
     }
     
-    // Deve ter no mínimo 13 anos e no máximo 120 anos
     return idade >= 13 && idade <= 120;
   }
+
+  // Submit
 
   async onSubmit() {
     this.loading.set(true);
     this.error.set(null);
 
-    // Validações
     if (!this.validateNome(this.user.nome)) {
       this.error.set('Nome deve ter no mínimo 10 caracteres e sem números');
       this.loading.set(false);
